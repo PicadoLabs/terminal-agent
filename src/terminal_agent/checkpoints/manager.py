@@ -41,10 +41,7 @@ class CheckpointManager:
         chk_dir.mkdir(parents=True, exist_ok=True)
         files_store_dir = chk_dir / "files"
         files_store_dir.mkdir(parents=True, exist_ok=True)
-
         git_commit = self.git_adapter.get_head_commit()
-
-        # Determine which files to snapshot
         files_to_save: List[Path] = []
         if target_files:
             for f in target_files:
@@ -52,38 +49,29 @@ class CheckpointManager:
                 if p.exists() and p.is_file():
                     files_to_save.append(p)
         else:
-            # Snapshot all tracked and modified files in repository
             for root, dirs, files in os.walk(self.working_dir):
                 dirs[:] = [d for d in dirs if d not in (".git", ".terminal_agent", ".venv", "venv", "__pycache__", "node_modules", "dist", "build", ".pytest_cache")]
                 for f in files:
                     full_p = Path(root) / f
-                    # Skip secret files
                     if not full_p.name.startswith(".env") and not full_p.name.endswith((".key", ".pem")):
                         files_to_save.append(full_p)
-
         file_contents: Dict[str, str] = {}
         modified_rel_paths: List[str] = []
-
         for p in files_to_save:
             try:
                 rel_p = str(p.relative_to(self.working_dir)).replace("\\", "/")
-                # Store copy in checkpoint dir
                 dest = files_store_dir / rel_p
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(p, dest)
-
-                # Store text content if valid text file
                 try:
                     content = p.read_text(encoding="utf-8", errors="ignore")
-                    if len(content) < 500000: # Limit memory footprint
+                    if len(content) < 500000:
                         file_contents[rel_p] = content
                 except Exception:
                     pass
-
                 modified_rel_paths.append(rel_p)
             except Exception:
                 continue
-
         snapshot = CheckpointSnapshot(
             checkpoint_id=chk_id,
             name=name,
@@ -93,7 +81,6 @@ class CheckpointManager:
             modified_files=modified_rel_paths,
             file_contents=file_contents
         )
-
         metadata_file = chk_dir / "metadata.json"
         metadata_file.write_text(snapshot.model_dump_json(indent=2), encoding="utf-8")
         return snapshot
@@ -103,7 +90,6 @@ class CheckpointManager:
         checkpoints = []
         if not self.checkpoints_dir.exists():
             return checkpoints
-
         for d in sorted(self.checkpoints_dir.iterdir(), key=os.path.getmtime, reverse=True):
             if d.is_dir():
                 meta_file = d / "metadata.json"
@@ -127,14 +113,10 @@ class CheckpointManager:
         chk = self.get_checkpoint(checkpoint_id)
         if not chk:
             return False
-
         chk_dir = self.checkpoints_dir / chk.checkpoint_id
         files_store_dir = chk_dir / "files"
-
         if not files_store_dir.exists():
             return False
-
-        # Restore files from snapshot
         for root, _, files in os.walk(files_store_dir):
             for f in files:
                 src_path = Path(root) / f
@@ -142,5 +124,28 @@ class CheckpointManager:
                 target_path = self.working_dir / rel_path
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src_path, target_path)
-
         return True
+
+    def prune_checkpoints(self, days: Optional[int] = None) -> List[Path]:
+        """Delete checkpoint directories older than ``days``.
+
+        If ``days`` is None, delete every checkpoint directory. The parent
+        checkpoints directory is left in place. Returns deleted directory paths.
+        """
+        deleted: List[Path] = []
+        if not self.checkpoints_dir.exists():
+            return deleted
+        cutoff = None
+        if days is not None:
+            cutoff = datetime.now(timezone.utc).timestamp() - (days * 86400)
+        for entry in list(self.checkpoints_dir.iterdir()):
+            if not entry.is_dir():
+                continue
+            if cutoff is not None and entry.stat().st_mtime >= cutoff:
+                continue
+            try:
+                shutil.rmtree(entry)
+                deleted.append(entry)
+            except OSError:
+                continue
+        return deleted

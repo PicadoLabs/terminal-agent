@@ -9,6 +9,7 @@ from terminal_agent.cli.commands.checkpoint import checkpoint_app, rollback_comm
 from terminal_agent.cli.commands.doctor import doctor_command
 from terminal_agent.cli.commands.trace import trace_command
 from terminal_agent.cli.commands.config_cmd import config_command
+from terminal_agent.cli.commands.clean import clean_command
 
 __all__ = [
     "run_command",
@@ -21,5 +22,5 @@ __all__ = [
     "doctor_command",
     "trace_command",
     "config_command",
+    "clean_command",
 ]
-

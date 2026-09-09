@@ -14,6 +14,7 @@ from terminal_agent.cli.commands.run import run_command
 from terminal_agent.cli.commands.setup import setup_command
 from terminal_agent.cli.commands.status import status_command
 from terminal_agent.cli.commands.test import test_command
+from terminal_agent.cli.commands.clean import clean_command
 from terminal_agent.cli.commands.trace import trace_command
 
 app = typer.Typer(
@@ -34,10 +35,11 @@ app.command(name="rollback", help="Restore repository state to a previous checkp
 app.command(name="doctor", help="Check system health, sandboxing, and provider status.")(doctor_command)
 app.command(name="trace", help="View structured telemetry trace for a session.")(trace_command)
 app.command(name="config", help="View or initialize configuration file.")(config_command)
+app.command(name="clean", help="Prune old sessions, checkpoints, and telemetry files.")(clean_command)
 
 KNOWN_COMMANDS = {
     "run", "setup", "resume", "status", "diff", "test", "checkpoint",
-    "rollback", "doctor", "trace", "config", "--help", "-h",
+    "rollback", "doctor", "trace", "config", "clean", "--help", "-h",
     "--version", "-v"
 }
 
@@ -59,4 +61,3 @@ def cli():
 
 if __name__ == "__main__":
     cli()
-

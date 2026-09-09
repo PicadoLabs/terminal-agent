@@ -60,15 +60,12 @@ class SessionManager:
         """Persist SessionState to JSON file."""
         state.updated_at = datetime.now(timezone.utc).isoformat()
         filepath = self.sessions_dir / f"{state.session_id}.json"
-        
-        # Calculate execution time
         try:
             start_dt = datetime.fromisoformat(state.metrics.start_time)
             curr_dt = datetime.fromisoformat(state.updated_at)
             state.metrics.execution_time_seconds = round((curr_dt - start_dt).total_seconds(), 2)
         except Exception:
             pass
-
         data = state.model_dump(mode="json")
         filepath.write_text(json.dumps(data, indent=2), encoding="utf-8")
         return filepath
@@ -77,13 +74,11 @@ class SessionManager:
         """Load SessionState by session_id."""
         filepath = self.sessions_dir / f"{session_id}.json"
         if not filepath.exists():
-            # Check if user passed full path or without prefix
             candidates = list(self.sessions_dir.glob(f"*{session_id}*.json"))
             if candidates:
                 filepath = candidates[0]
             else:
                 return None
-
         try:
             content = filepath.read_text(encoding="utf-8")
             data = json.loads(content)
@@ -96,7 +91,6 @@ class SessionManager:
         sessions = []
         if not self.sessions_dir.exists():
             return sessions
-
         for json_file in sorted(self.sessions_dir.glob("*.json"), key=os.path.getmtime, reverse=True):
             try:
                 content = json_file.read_text(encoding="utf-8")
@@ -110,6 +104,28 @@ class SessionManager:
         """Retrieve the most recent session if available."""
         sessions = self.list_sessions()
         return sessions[0] if sessions else None
+
+    def delete_sessions_older_than(self, days: Optional[int] = None) -> List[Path]:
+        """Delete session JSON files older than ``days``.
+
+        If ``days`` is None, delete every session file. Returns the list of
+        deleted file paths. The sessions directory itself is kept.
+        """
+        deleted: List[Path] = []
+        if not self.sessions_dir.exists():
+            return deleted
+        cutoff = None
+        if days is not None:
+            cutoff = datetime.now(timezone.utc).timestamp() - (days * 86400)
+        for json_file in list(self.sessions_dir.glob("*.json")):
+            if cutoff is not None and json_file.stat().st_mtime >= cutoff:
+                continue
+            try:
+                json_file.unlink()
+                deleted.append(json_file)
+            except OSError:
+                continue
+        return deleted
 
     def record_step(
         self,
