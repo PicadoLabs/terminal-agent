@@ -1,5 +1,6 @@
 """Main Typer CLI entrypoint for Terminal Agent."""
 
+import importlib.metadata
 import sys
 from pathlib import Path
 from typing import Optional
@@ -17,11 +18,38 @@ from terminal_agent.cli.commands.test import test_command
 from terminal_agent.cli.commands.clean import clean_command
 from terminal_agent.cli.commands.trace import trace_command
 
+
+def version_callback(value: bool):
+    if value:
+        try:
+            ver = importlib.metadata.version("terminal-agent")
+        except Exception:
+            from terminal_agent import __version__ as ver
+
+        typer.echo(f"terminal-agent v{ver}")
+        raise typer.Exit()
+    
+
 app = typer.Typer(
     name="terminal-agent",
     help="Terminal Agent: Build. Verify. Ship. Autonomous terminal-based coding agent.",
     no_args_is_help=False
 )
+
+
+@app.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-v",
+        callback=version_callback,
+        is_eager=True,
+        help="Show the version and exit.",
+    )
+):
+    pass
+
 
 # Register Subcommands
 app.command(name="run", help="Run an autonomous coding task.")(run_command)
