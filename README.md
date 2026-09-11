@@ -3,6 +3,7 @@
 > **Build. Verify. Ship.**  
 > An autonomous terminal-based coding agent designed around verifiable software changes.
 
+[![PyPI version](https://img.shields.io/pypi/v/terminal-agent-cli.svg)](https://pypi.org/project/terminal-agent-cli/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
 
@@ -125,7 +126,19 @@ flowchart TD
 - **Python**: `3.10`, `3.11`, or `3.12`
 - **Git**: `2.30+`
 
-### Quick Onboarding Flow
+### Option 1: Install from PyPI (Recommended)
+
+Install globally via `pipx` (recommended for isolated CLI tools) or standard `pip`:
+
+```bash
+# Using pipx (recommended)
+pipx install terminal-agent-cli
+
+# Or using pip
+pip install terminal-agent-cli
+```
+
+### Option 2: Install from Source (For Development)
 
 ```bash
 # 1. Clone & install
@@ -134,12 +147,21 @@ cd terminal-agent
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
 pip install -e .
+```
 
-# 2. Configure model provider (Ollama or Cloud API)
+### Quick Onboarding Flow
+
+Once installed, run interactive setup and verify your environment:
+
+```bash
+# 1. Configure model provider (Ollama or Cloud API)
 terminal-agent setup
 
-# 3. Verify environment health & ready providers
+# 2. Verify environment health & ready providers
 terminal-agent doctor
+
+# 3. Start your first task
+terminal-agent start "Analyze repo and run tests"
 ```
 
 ---
