@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "terminal-agent"
+name = "terminal-agent-cli"
 version = "0.1.0"
 description = "Autonomous terminal-based coding agent designed around verifiable software changes. Build. Verify. Ship."
 readme = "README.md"

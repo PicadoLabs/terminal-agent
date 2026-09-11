@@ -22,9 +22,12 @@ from terminal_agent.cli.commands.trace import trace_command
 def version_callback(value: bool):
     if value:
         try:
-            ver = importlib.metadata.version("terminal-agent")
+            ver = importlib.metadata.version("terminal-agent-cli")
         except Exception:
-            from terminal_agent import __version__ as ver
+            try:
+                ver = importlib.metadata.version("terminal-agent")
+            except Exception:
+                from terminal_agent import __version__ as ver
 
         typer.echo(f"terminal-agent v{ver}")
         raise typer.Exit()
