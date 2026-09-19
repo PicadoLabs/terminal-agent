@@ -4,7 +4,7 @@
 > An autonomous terminal-based coding agent designed around verifiable software changes.
 
 [![PyPI version](https://img.shields.io/pypi/v/terminal-agent-cli.svg)](https://pypi.org/project/terminal-agent-cli/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
 
 ---
@@ -369,7 +369,7 @@ terminal-agent/
 ├── CONTRIBUTING.md               # Contribution guidelines
 ├── CODE_OF_CONDUCT.md            # Contributor Covenant code of conduct
 ├── SECURITY.md                   # Security policy and disclosure process
-├── LICENSE                       # MIT License
+├── LICENSE                       # Apache 2.0 License
 └── README.md
 ```
 ---
@@ -416,6 +416,6 @@ Terminal Agent is maintained by **[PicadoLabs](https://picadolabs.me)**.
 
 ## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
 
 Copyright (c) 2026 PicadoLabs.

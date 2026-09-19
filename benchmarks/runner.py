@@ -3,12 +3,29 @@
 import json
 import os
 import shutil
+import stat
 import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import yaml
+
+
+def _rmtree_safely(path: Path) -> None:
+    """Safely remove a directory tree handling Windows read-only git files."""
+    if not path.exists():
+        return
+    def _handle_remove_readonly(func, p, exc_info):
+        try:
+            os.chmod(p, stat.S_IWRITE)
+            func(p)
+        except Exception:
+            pass
+    try:
+        shutil.rmtree(path, onerror=_handle_remove_readonly)
+    except Exception:
+        shutil.rmtree(path, ignore_errors=True)
 
 from terminal_agent.agent.loop import AgentLoop
 from terminal_agent.checkpoints.manager import CheckpointManager
@@ -160,7 +177,7 @@ class BenchmarkRunner:
         for idx, t_dir in enumerate(task_dirs, start=1):
             ws = (temp_base or self.output_dir) / f"ws_{t_dir.name}"
             if ws.exists():
-                shutil.rmtree(ws)
+                _rmtree_safely(ws)
             ws.mkdir(parents=True, exist_ok=True)
 
             try:
@@ -168,7 +185,7 @@ class BenchmarkRunner:
                 runs.append(record)
             finally:
                 if ws.exists():
-                    shutil.rmtree(ws, ignore_errors=True)
+                    _rmtree_safely(ws)
 
         passed_count = sum(1 for r in runs if r["status"] == "VERIFIED")
         report = {
