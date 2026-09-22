@@ -9,6 +9,16 @@
 
 ---
 
+
+## The Real-World Problem
+Autonomous coding agents (like Aider or OpenHands) often make sweeping changes that break the build. They lack a strict verification loop and can leave a repository in a messy state if they fail halfway through a task.
+
+## Why it's Unique (The "Edge")
+- **Verification-First Engine:** The agent doesn't just write code; it is strictly gated by an independent verification engine (e.g., running `pytest` automatically before committing).
+- **Checkpoints & Safe Rollback:** Built-in state snapshots. If the agent goes down a rabbit hole and breaks things, the user can instantly roll back to a known good state.
+- **Lean & Terminal-Native:** No heavy Electron apps or complex Docker setups required. It's a pure, fast Python CLI designed for terminal power users.
+- **Strict Security Boundaries:** Built-in policies to prevent destructive commands or unauthorized network access during autonomous execution.
+
 ## Overview
 
 **Terminal Agent** is an autonomous, terminal-first software engineering agent built by **[PicadoLabs](https://picadolabs.me)**.
