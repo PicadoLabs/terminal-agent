@@ -1,7 +1,23 @@
 """Unit tests for validation benchmarks and AgentBench report compatibility."""
 
+import os
+import stat
+
 from pathlib import Path
-from benchmarks.runner import BenchmarkRunner
+from benchmarks.runner import BenchmarkRunner, safe_rmtree
+
+
+def test_safe_rmtree_removes_readonly_files(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    objects = workspace / ".git" / "objects"
+    objects.mkdir(parents=True)
+    readonly_file = objects / "readonly_object"
+    readonly_file.write_text("git object", encoding="utf-8")
+    os.chmod(readonly_file, stat.S_IREAD)
+
+    safe_rmtree(workspace)
+
+    assert not workspace.exists()
 
 
 def test_benchmark_task_discovery():

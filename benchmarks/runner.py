@@ -12,20 +12,25 @@ from typing import Any, Dict, List, Optional
 import yaml
 
 
-def _rmtree_safely(path: Path) -> None:
-    """Safely remove a directory tree handling Windows read-only git files."""
-    if not path.exists():
-        return
-    def _handle_remove_readonly(func, p, exc_info):
-        try:
-            os.chmod(p, stat.S_IWRITE)
-            func(p)
-        except Exception:
-            pass
+def _remove_readonly(func, path, exc_info):
+    """Error handler for shutil.rmtree on Windows read-only files."""
     try:
-        shutil.rmtree(path, onerror=_handle_remove_readonly)
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
     except Exception:
-        shutil.rmtree(path, ignore_errors=True)
+        pass
+
+
+def safe_rmtree(path: Path) -> None:
+    """Safely remove a directory tree handling Windows read-only git files."""
+    if path.exists():
+        try:
+            shutil.rmtree(path, onerror=_remove_readonly)
+        except Exception:
+            shutil.rmtree(path, ignore_errors=True)
+
+
+_rmtree_safely = safe_rmtree
 
 from terminal_agent.agent.loop import AgentLoop
 from terminal_agent.checkpoints.manager import CheckpointManager
@@ -176,16 +181,14 @@ class BenchmarkRunner:
 
         for idx, t_dir in enumerate(task_dirs, start=1):
             ws = (temp_base or self.output_dir) / f"ws_{t_dir.name}"
-            if ws.exists():
-                _rmtree_safely(ws)
+            safe_rmtree(ws)
             ws.mkdir(parents=True, exist_ok=True)
 
             try:
                 record = self.run_task(t_dir, ws)
                 runs.append(record)
             finally:
-                if ws.exists():
-                    _rmtree_safely(ws)
+                safe_rmtree(ws)
 
         passed_count = sum(1 for r in runs if r["status"] == "VERIFIED")
         report = {
